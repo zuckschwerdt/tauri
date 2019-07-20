@@ -356,6 +356,20 @@ WEBVIEW_API void webview_set_title(struct webview *w, const char *title) {
   gtk_window_set_title(GTK_WINDOW(w->priv.window), title);
 }
 
+gboolean inspector_attach_cb(WebKitWebInspector *inspector, gpointer user_data) {
+  webkit_web_inspector_detach(WEBKIT_WEB_INSPECTOR(inspector));
+  return TRUE;
+}
+
+WEBVIEW_API void webview_open_inspector(struct webview *w, int attached) {
+  WebKitWebInspector *inspector = webkit_web_view_get_inspector(WEBKIT_WEB_VIEW(w->priv.webview));
+  webkit_web_inspector_show(WEBKIT_WEB_INSPECTOR(inspector));
+  
+  if (!attached) {
+    g_signal_connect(G_OBJECT(inspector), "attach", G_CALLBACK(inspector_attach_cb), w);
+  }
+}
+
 WEBVIEW_API void webview_set_fullscreen(struct webview *w, int fullscreen) {
   if (fullscreen) {
     gtk_window_fullscreen(GTK_WINDOW(w->priv.window));

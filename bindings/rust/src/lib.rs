@@ -381,6 +381,12 @@ impl<'a, T> WebView<'a, T> {
     Ok(())
   }
 
+  /// Opens the webview inspector
+  pub fn open_inspector(&mut self, attached: bool) -> WVResult {
+    unsafe { webview_open_inspector(self.inner, attached as _) }
+    Ok(())
+  } 
+
   /// Enables or disables fullscreen.
   pub fn set_fullscreen(&mut self, fullscreen: bool) {
     unsafe { webview_set_fullscreen(self.inner, fullscreen as _) };

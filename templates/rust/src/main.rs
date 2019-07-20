@@ -78,7 +78,7 @@ fn main() {
     }
   }
 
-  let webview = proton_ui::builder()
+  let mut webview = proton_ui::builder()
     .title("MyAppTitle")
     .content(content)
     .size(800, 600) // TODO:Resolution is fixed right now, change this later to be dynamic
@@ -107,6 +107,8 @@ fn main() {
     })
     .build()
     .unwrap();
+  
+  webview.open_inspector(false).unwrap();
 
   webview.run().unwrap();
 }
