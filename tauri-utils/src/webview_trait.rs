@@ -1,15 +1,14 @@
 use raw_window_handle::RawWindowHandle;
 
+/// Trait for abstracting web view implementations.
+///
+/// # Implementation Contract
+/// 1) [`WebViewBinding::init`] must use [`compiler_error`] if it does not support the current
+/// target
+/// 2) The binding must not assume that it is the only instance of itself.
 pub trait WebViewBinding {
-    /// When `Some`, adds a build restriction so the binding can only be used with the given
-    /// `target_os` condition.
-    const TARGET_OS: Option<&'static str>;
-    /// When `Some`, adds a build restriction so the binding can only be used with the given
-    /// `target_family` condition.
-    const TARGET_FAMILY: Option<&'static str>;
-
     /// The constructor for the binding.
-    fn init(window_handle: RawWindowHandle) -> crate::Result<Self>;
+    fn init(window_handle: RawWindowHandle) -> Self where Self: Sized;
 
     /// Sends JavaScript to the backing engine for evaluation.
     fn eval(&mut self, js: &str) -> crate::Result<()>;
@@ -17,15 +16,6 @@ pub trait WebViewBinding {
     fn inject_css(&mut self, css: &str) -> crate::Result<()>;
     /// Loads the given HTML, overwriting the currently loaded page.
     fn load_html(&mut self, html: &str) -> crate::Result<()>;
-
-    /// Helper method to access the associated constant.
-    fn target_os() -> Option<&'static str> {
-        Self::TARGET_OS
-    }
-    /// Helper method to access the associated constant.
-    fn target_family() -> Option<&'static str> {
-        Self::TARGET_FAMILY
-    }
 }
 
 /// Contains the bindings used for a given instance of a web view.
@@ -33,26 +23,8 @@ pub struct WebView(Box<dyn WebViewBinding>);
 
 impl WebView {
     /// Builds the generic web view layer, calling [`WebViewBinding::init`] internally.
-    pub fn new<T: WebViewBinding>(window_handle: RawWindowHandle) -> crate::Result<Self> {
-        Ok(Self(Box::new(T::init(window_handle)?)))
-    }
-
-    /// Performs a runtime check to ensure the provided bindings are valid for the current build.
-    ///
-    /// # Panics
-    /// If the Target OS or Target Family do not match, this will panic.
-    pub fn validate_target(&self) {
-        if let Some(os) = self.0.target_os() {
-            if !cfg!(target_os = os) {
-                panic!("Invalid target. Attempted to use binding valid only for `target_os = {}`", os);
-            }
-        }
-
-        if let Some(family) = self.0.target_family() {
-            if !cfg!(target_family = family) {
-                panic!("Invalid target. Attempted to use binding valid only for `target_family = {}`", family);
-            }
-        }
+    pub fn new<T: WebViewBinding + 'static>(window_handle: RawWindowHandle) -> crate::Result<Self> {
+        Ok(Self(Box::new(T::init(window_handle))))
     }
 
     /// Sends JavaScript to the backing engine for evaluation.
