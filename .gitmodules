@@ -1,0 +1,3 @@
+[submodule "tauri-view\\zserge"]
+	path = tauri-view\\zserge
+	url = https://github.com/tauri-apps/zserge-webview
