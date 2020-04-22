@@ -1,5 +1,6 @@
 pub mod platform;
 pub mod process;
+mod webview_trait;
 
 use error_chain::error_chain;
 
